@@ -1,9 +1,9 @@
-name: Uber Driver CI
+name: Uber CI
 on:
   pull_request:
     branches: [master]
     paths:
-      - "uber_driver/**"
+      - "uber/**"
 
 jobs:
   flutter_test:
@@ -21,11 +21,11 @@ jobs:
         with:
           channel: "stable"
       - run: flutter pub get
-        working-directory: ./uber_driver
+        working-directory: ./uber
       - run: flutter analyze
-        working-directory: ./uber_driver
+        working-directory: ./uber
       - run: flutter test
-        working-directory: ./uber_driver
+        working-directory: ./uber
 
   build_ios:
     name: Build Flutter (iOS)
@@ -39,16 +39,16 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: "stable"
-      - run: rm Podfile.lock
-        working-directory: ./tive/ios
-      - run: pod install --repo-update
-        working-directory: ./tive/ios
-      - run: flutter clean
-        working-directory: ./uber_driver
       - run: flutter pub get
-        working-directory: ./uber_driver
+        working-directory: ./uber
+      - run: rm Podfile.lock
+        working-directory: ./uber/ios
+      - run: pod repo update
+        working-directory: ./uber/ios
+      - run: flutter clean
+        working-directory: ./uber
       - run: flutter build ios --release --no-codesign
-        working-directory: ./uber_driver
+        working-directory: ./uber
 
   build_appbundle:
     name: Build Flutter (Android)
@@ -63,17 +63,17 @@ jobs:
         with:
           channel: "stable"
       - run: flutter pub get
-        working-directory: ./uber_driver
+        working-directory: ./uber
       - run: flutter clean
-        working-directory: ./uber_driver
+        working-directory: ./uber
       - run: echo $SIGNING_KEY | base64 -d > android/app/key.jks
         env:
           SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
-        working-directory: ./uber_driver
+        working-directory: ./uber
       - run: flutter build appbundle --release
         env:
           KEY_STORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PATH: key.jks
-        working-directory: ./uber_driver
+        working-directory: ./uber
