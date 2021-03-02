@@ -41,11 +41,11 @@ jobs:
           channel: "stable"
       - run: rm Podfile.lock
         working-directory: ./uber/ios
+      - run: flutter pub get
+        working-directory: ./uber
       - run: pod install --repo-update
         working-directory: ./uber/ios
       - run: flutter clean
-        working-directory: ./uber
-      - run: flutter pub get
         working-directory: ./uber
       - run: flutter build ios --release --no-codesign
         working-directory: ./uber
