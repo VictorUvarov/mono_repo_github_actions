@@ -1,7 +1,7 @@
 name: Uber Driver CI
 on:
   pull_request:
-    branches: [master]
+    branches: [master, dev]
     paths:
       - "uber_driver/**"
 
