@@ -39,12 +39,12 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: "stable"
-      - run: rm Podfile.lock
-        working-directory: ./tive/ios
       - run: flutter pub get
         working-directory: ./uber_driver
-      - run: pod install --repo-update
-        working-directory: ./tive/ios
+      - run: rm Podfile.lock
+        working-directory: ./uber_driver/ios
+      - run: pod repo update
+        working-directory: ./uber_driver/ios
       - run: flutter clean
         working-directory: ./uber_driver
       - run: flutter build ios --release --no-codesign
