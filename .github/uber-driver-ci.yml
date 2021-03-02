@@ -1,0 +1,79 @@
+name: Uber Driver CI
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - "uber_driver/**"
+
+jobs:
+  flutter_test:
+    name: Test client on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: "stable"
+      - run: flutter pub get
+        working-directory: ./uber_driver
+      - run: flutter analyze
+        working-directory: ./uber_driver
+      - run: flutter test
+        working-directory: ./uber_driver
+
+  build_ios:
+    name: Build Flutter (iOS)
+    needs: [flutter_test]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: "stable"
+      - run: rm Podfile.lock
+        working-directory: ./tive/ios
+      - run: pod install --repo-update
+        working-directory: ./tive/ios
+      - run: flutter clean
+        working-directory: ./uber_driver
+      - run: flutter pub get
+        working-directory: ./uber_driver
+      - run: flutter build ios --release --no-codesign
+        working-directory: ./uber_driver
+
+  build_appbundle:
+    name: Build Flutter (Android)
+    needs: [flutter_test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: "stable"
+      - run: flutter pub get
+        working-directory: ./uber_driver
+      - run: flutter clean
+        working-directory: ./uber_driver
+      - run: echo $SIGNING_KEY | base64 -d > android/app/key.jks
+        env:
+          SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
+        working-directory: ./uber_driver
+      - run: flutter build appbundle --release
+        env:
+          KEY_STORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PATH: key.jks
+        working-directory: ./uber_driver
